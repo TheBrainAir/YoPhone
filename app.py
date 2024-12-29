@@ -2,6 +2,7 @@ from flask import Flask, request, jsonify
 import requests
 import base64
 import logging
+from googletrans import Translator, LANGUAGES
 
 app = Flask(__name__)
 
@@ -12,34 +13,15 @@ API_KEY = "01940f1b-72c5-7ac6-ab4b-b86c5e6f8964:becf17a8df9847da0e394bfbd57fffd0
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+# Initialize the translator
+translator = Translator()
+
 # Default translation language
 default_language = "hy"  # Armenian
 
 # Dictionaries to store user languages and states
 user_languages = {}  # Stores the target language for each user
 user_states = {}     # Stores the current state for each user (e.g., awaiting language input)
-
-# Function to translate text to the target language
-def translate_text(text, target_language):
-    url = "https://translate.googleapis.com/translate_a/single"
-    params = {
-        "client": "gtx",
-        "sl": "auto",            # Auto-detect source language
-        "tl": target_language,   # Target language
-        "dt": "t",
-        "q": text
-    }
-    try:
-        response = requests.get(url, params=params, timeout=10)
-        response.raise_for_status()
-        translation = response.json()[0][0][0]
-        return translation
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Translation API request failed: {e}")
-        return "Translation error."
-    except (IndexError, ValueError) as e:
-        logger.error(f"Error parsing translation response: {e}")
-        return "Translation error."
 
 # Function to send messages to the user
 def send_message(chat_id, text):
@@ -61,54 +43,19 @@ def send_message(chat_id, text):
 
 # Function to convert language name to ISO-639-1 code
 def get_language_code(language_name):
-    language_map = {
-        "english": "en",
-        "spanish": "es",
-        "french": "fr",
-        "german": "de",
-        "russian": "ru",
-        "armenian": "hy",
-        "chinese": "zh",
-        "japanese": "ja",
-        "arabic": "ar",
-        "hindi": "hi",
-        "italian": "it",
-        "korean": "ko",
-        "portuguese": "pt",
-        "turkish": "tr",
-        "dutch": "nl",
-        "swedish": "sv",
-        "polish": "pl",
-        "greek": "el",
-        "czech": "cs",
-        "danish": "da",
-        "finnish": "fi",
-        "hungarian": "hu",
-        "norwegian": "no",
-        "thai": "th",
-        "vietnamese": "vi",
-        "hebrew": "he",
-        "indonesian": "id",
-        "malay": "ms",
-        "filipino": "tl",
-        "ukrainian": "uk",
-        "bulgarian": "bg",
-        "slovak": "sk",
-        "croatian": "hr",
-        "serbian": "sr",
-        "lithuanian": "lt",
-        "latvian": "lv",
-        "estonian": "et",
-        "slovenian": "sl",
-        "macedonian": "mk",
-        "icelandic": "is",
-        "afrikaans": "af",
-        "swahili": "sw"
-    }
-    return language_map.get(language_name.lower())
+    return LANGUAGES.get(language_name.lower())
+
+# Function to translate text to the target language
+def translate_text(text, target_language):
+    try:
+        translated = translator.translate(text, dest=target_language)
+        return translated.text
+    except Exception as e:
+        logger.error(f"Translation failed: {e}")
+        return "Translation error."
 
 # Main webhook route
-@app.route('/yoai:01940f1b-72c5-7ac6-ab4b-b86c5e6f8964:becf17a8df9847da0e394bfbd57fffd05f3cbd2b1ab88065193fcc74aed329a9', methods=['POST'])
+@app.route('/your-webhook-path', methods=['POST'])
 def webhook():
     data = request.json
     logger.info(f"Received data: {data}")
