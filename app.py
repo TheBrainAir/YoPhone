@@ -119,30 +119,46 @@ def webhook():
 
     print(f"Decoded message: {decoded_text}")
 
-    # Convert text to lowercase for case-insensitive comparison
-    decoded_text_lower = decoded_text.lower()
+    # Check if the message is a command (starts with '/')
+    if decoded_text.startswith('/'):
+        # Extract the command by removing the leading slash and convert to lowercase
+        command = decoded_text[1:].lower()
 
-    # Handle /start command
-    if decoded_text_lower in ["/start", "start"]:
-        welcome_message = (
-            "Welcome! I can translate your messages.\n\n"
-            "Commands:\n"
-            "/switch - Change the translation language.\n"
-            "Simply type any message, and I will translate it."
-        )
-        send_message(chat_id, welcome_message)
-        return jsonify({"status": "ok"}), 200
+        # Handle /start command
+        if command == "start":
+            welcome_message = (
+                "Welcome! I can translate your messages.\n\n"
+                "Commands:\n"
+                "/switch - Change the translation language.\n"
+                "Simply type any message, and I will translate it."
+            )
+            send_message(chat_id, welcome_message)
+            return jsonify({"status": "ok"}), 200
 
-    # Handle /switch command
-    if decoded_text_lower in ["/switch", "switch"]:
-        switch_message = (
-            "Please enter the language you want to translate to (in English, e.g., 'Spanish', 'French', etc.)."
-        )
-        send_message(chat_id, switch_message)
-        user_languages[chat_id] = None  # Awaiting language input
-        return jsonify({"status": "ok"}), 200
+        # Handle /switch command
+        if command == "switch":
+            switch_message = (
+                "Please enter the language you want to translate to (in English, e.g., 'Spanish', 'French', etc.)."
+            )
+            send_message(chat_id, switch_message)
+            user_languages[chat_id] = None  # Awaiting language input
+            return jsonify({"status": "ok"}), 200
+        
+        
+        if command == "help":
+            help_message = (
+                "Here are the commands you can use:\n"
+                "/start - Start the bot and see the welcome message.\n"
+                "/switch - Change the translation language.\n"
+                "/help - Show this help message."
+            )
+            send_message(chat_id, help_message)
+            return jsonify({"status": "ok"}), 200
 
-    # Check if user is expected to input a language
+
+        # You can add more command handlers here if needed
+
+    # Check if user is expected to input a language after /switch
     if chat_id in user_languages and user_languages[chat_id] is None:
         target_language = get_language_code(decoded_text)
         if target_language:
