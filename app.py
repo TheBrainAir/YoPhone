@@ -28,6 +28,23 @@ def translate_text(text, target_language):
         print(f"Translation error: {response.status_code}, {response.text}")
         return "Translation error."
 
+@app.route('/')
+def index():
+    return '''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>YoTranslate</title>
+    </head>
+    <body>
+        <h1>Welcome to YoTranslate!</h1>
+        <p>This is the bot server for YoTranslate. If you see this page, the server is running successfully.</p>
+    </body>
+    </html>
+    '''
+
 # Основной маршрут для вебхука
 @app.route('/yoai:01940f1b-72c5-7ac6-ab4b-b86c5e6f8964:becf17a8df9847da0e394bfbd57fffd05f3cbd2b1ab88065193fcc74aed329a9', methods=['POST'])
 def webhook():
